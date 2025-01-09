@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, Outlet } from "react-router";
+import { Link, Outlet, useNavigate } from "react-router";
 import { createEmptyContact, getContacts } from "../data";
 
 export default function SidebarLayout() {
+	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const { data: contacts = [] } = useQuery({
 		queryKey: ["contacts"],
@@ -11,9 +12,10 @@ export default function SidebarLayout() {
 	const { mutate: createContact } = useMutation(
 		{
 			mutationFn: createEmptyContact,
-			onSuccess: () => {
+			onSuccess: (newContact) => {
 				// Invalidate and refetch
 				queryClient.invalidateQueries({ queryKey: ["contacts"] });
+				navigate(`contacts/${newContact.id}/edit`);
 			},
 		},
 		queryClient,

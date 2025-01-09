@@ -1,13 +1,25 @@
-import { useQuery } from "@tanstack/react-query";
-import { ContactRecord, getContact } from "../data";
-import { Link, useParams } from "react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ContactRecord, deleteContact, getContact } from "../data";
+import { Link, useNavigate, useParams } from "react-router";
 
 export default function Contact() {
+	const queryClient = useQueryClient();
+	const navigate = useNavigate();
 	const { contactId = "" } = useParams();
 	const { isLoading, data: contact } = useQuery({
 		queryKey: ["contact", contactId],
 		queryFn: () => getContact(contactId),
 	});
+
+	const { mutate } = useMutation({
+		mutationFn: deleteContact,
+		onSuccess: () => {
+			// Invalidate and refetch
+			queryClient.invalidateQueries({ queryKey: ["contacts"] });
+			navigate("/");
+		},
+	});
+
 	return (
 		(isLoading && <div>Loading...</div>) ||
 		(!isLoading && !contact && (
@@ -57,11 +69,12 @@ export default function Contact() {
 							action="destroy"
 							method="post"
 							onSubmit={(event) => {
+								event.preventDefault();
 								const response = confirm(
 									"Please confirm you want to delete this record.",
 								);
-								if (!response) {
-									event.preventDefault();
+								if (response) {
+									mutate(contact.id);
 								}
 							}}
 						>
