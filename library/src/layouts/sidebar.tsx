@@ -1,12 +1,24 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Outlet } from "react-router";
-import { getContacts } from "../data";
+import { createEmptyContact, getContacts } from "../data";
 
 export default function SidebarLayout() {
+	const queryClient = useQueryClient();
 	const { data: contacts = [] } = useQuery({
 		queryKey: ["contacts"],
 		queryFn: () => getContacts(),
 	});
+	const { mutate: createContact } = useMutation(
+		{
+			mutationFn: createEmptyContact,
+			onSuccess: () => {
+				// Invalidate and refetch
+				queryClient.invalidateQueries({ queryKey: ["contacts"] });
+			},
+		},
+		queryClient,
+	);
+
 	return (
 		<>
 			<div id="sidebar">
@@ -24,7 +36,13 @@ export default function SidebarLayout() {
 						/>
 						<div aria-hidden hidden={true} id="search-spinner" />
 					</form>
-					<form method="post">
+					<form
+						method="post"
+						onSubmit={(event) => {
+							event.preventDefault();
+							createContact();
+						}}
+					>
 						<button type="submit">New</button>
 					</form>
 				</div>

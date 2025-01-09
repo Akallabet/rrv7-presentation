@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { ContactRecord, getContact } from "../data";
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
 
 export default function Contact() {
 	const { contactId = "" } = useParams();
@@ -49,9 +49,9 @@ export default function Contact() {
 					{contact.notes ? <p>{contact.notes}</p> : null}
 
 					<div>
-						<form action="edit">
+						<Link to="edit">
 							<button type="submit">Edit</button>
-						</form>
+						</Link>
 
 						<form
 							action="destroy"
