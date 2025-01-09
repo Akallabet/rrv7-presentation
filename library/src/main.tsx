@@ -1,10 +1,12 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./app.css";
-import App from "./App.tsx";
+import Home from "./routes/home.tsx";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import SidebarLayout from "./layouts/sidebar.tsx";
+import Contact from "./routes/contact.tsx";
+import About from "./routes/about.tsx";
 
 const queryClient = new QueryClient();
 createRoot(document.getElementById("root")!).render(
@@ -13,8 +15,10 @@ createRoot(document.getElementById("root")!).render(
 			<BrowserRouter>
 				<Routes>
 					<Route element={<SidebarLayout />}>
-						<Route path="/" element={<App />} />
+						<Route index element={<Home />} />
+						<Route path="contacts/:contactId" element={<Contact />} />
 					</Route>
+					<Route path="about" element={<About />} />
 				</Routes>
 			</BrowserRouter>
 		</QueryClientProvider>
