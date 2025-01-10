@@ -1,8 +1,21 @@
-import { Form } from "react-router";
+import { Form, useFetcher } from "react-router";
 
 import type { ContactRecord } from "../data";
-import { getContact } from "../data";
+import { getContact, updateContact } from "../data";
 import type { Route } from "./+types/contact";
+
+export async function action({ params, request }: Route.ActionArgs) {
+	const formData = await request.formData();
+	if (formData.get("favorite") === "true") {
+		return updateContact(params.contactId, {
+			favorite: true,
+		});
+	}
+	if (!!formData.get("custom")) {
+		const contact = await getContact(params.contactId);
+		return { contact: { ...contact, custom: "This is your custom action" } };
+	}
+}
 
 export async function loader({ params }: Route.LoaderArgs) {
 	const contact = await getContact(params.contactId);
@@ -14,6 +27,7 @@ export default function Contact({ loaderData }: Route.ComponentProps) {
 	if (!contact) {
 		throw new Response("Not Found", { status: 404 });
 	}
+
 	return (
 		contact && (
 			<div id="contact">
@@ -57,7 +71,7 @@ export default function Contact({ loaderData }: Route.ComponentProps) {
 							method="post"
 							onSubmit={(event) => {
 								const response = confirm(
-									"Please confirm you want to delete this record.",
+									"Please confirm you want to delete this record."
 								);
 								if (!response) {
 									event.preventDefault();
@@ -66,6 +80,10 @@ export default function Contact({ loaderData }: Route.ComponentProps) {
 						>
 							<button type="submit">Delete</button>
 						</Form>
+
+						<CustomAction />
+
+						{contact.custom ? <p>{contact.custom}</p> : null}
 					</div>
 				</div>
 			</div>
@@ -73,15 +91,12 @@ export default function Contact({ loaderData }: Route.ComponentProps) {
 	);
 }
 
-function Favorite({
-	contact,
-}: {
-	contact: Pick<ContactRecord, "favorite">;
-}) {
+function Favorite({ contact }: { contact: Pick<ContactRecord, "favorite"> }) {
+	const fetcher = useFetcher();
 	const favorite = contact.favorite;
 
 	return (
-		<Form method="post">
+		<fetcher.Form method="post">
 			<button
 				aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
 				name="favorite"
@@ -89,6 +104,17 @@ function Favorite({
 			>
 				{favorite ? "★" : "☆"}
 			</button>
-		</Form>
+		</fetcher.Form>
+	);
+}
+
+function CustomAction() {
+	const fetcher = useFetcher();
+	return (
+		<fetcher.Form method="post">
+			<button type="submit" name="custom" value="custom">
+				Custom action
+			</button>
+		</fetcher.Form>
 	);
 }
